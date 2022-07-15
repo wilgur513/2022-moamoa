@@ -22,15 +22,4 @@ public class AcceptanceTest {
         RestAssured.port = port;
     }
 
-    @DisplayName("cors 적용 여부 확인")
-    @Test
-    void corsTest() {
-        RestAssured.given()
-                .header("Origin", "https://xxx.com")
-                .header("Access-Control-Request-Method", "GET")
-                .when()
-                .options("/api/studies")
-                .then()
-                .statusCode(200);
-    }
 }
