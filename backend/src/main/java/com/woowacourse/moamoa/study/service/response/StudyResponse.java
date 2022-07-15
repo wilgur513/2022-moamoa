@@ -1,7 +1,9 @@
 package com.woowacourse.moamoa.study.service.response;
 
 import com.woowacourse.moamoa.study.domain.Study;
+import lombok.ToString;
 
+@ToString
 public class StudyResponse {
 
     private Long id;

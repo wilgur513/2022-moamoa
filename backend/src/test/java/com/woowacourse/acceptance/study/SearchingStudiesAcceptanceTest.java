@@ -120,4 +120,42 @@ public class SearchingStudiesAcceptanceTest extends AcceptanceTest {
                 .body("studies.thumbnail", contains("java thumbnail"))
                 .body("studies.status", contains("OPEN"));
     }
+
+    @DisplayName("여러개의 tag를 AND조건으로 필터링하여 스터디 목록을 조회한다.")
+    @Test
+    void getStudiesByFilters() {
+        RestAssured.given().log().all()
+                .param("title", "java")
+                .param("page", 0)
+                .param("size", 3)
+                .param("tag", 1) // Java 태그 ID
+                .param("tag", 3) // BE 태그 ID
+                .when().log().all()
+                .get("/api/studies/search")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("hasNext", is(false))
+                .body("studies", hasSize(1))
+                .body("studies.id", contains(notNullValue()))
+                .body("studies.title", contains("Java 스터디"))
+                .body("studies.excerpt", contains("자바 설명"))
+                .body("studies.thumbnail", contains("java thumbnail"))
+                .body("studies.status", contains("OPEN"));
+    }
+
+    @DisplayName("tag에 필터링 되는 스터디 목록이 없는 경우 빈 리스트를 반환한다.")
+    @Test
+    void getEmptyStudiesByFilters() {
+        RestAssured.given().log().all()
+                .param("page", 0)
+                .param("size", 3)
+                .param("tag", 3) // BE 태그 ID
+                .param("tag", 4) // FE 태그 ID
+                .when().log().all()
+                .get("/api/studies/search")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("hasNext", is(false))
+                .body("studies", hasSize(0));
+    }
 }

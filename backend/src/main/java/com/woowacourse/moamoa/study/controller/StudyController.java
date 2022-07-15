@@ -2,6 +2,7 @@ package com.woowacourse.moamoa.study.controller;
 
 import com.woowacourse.moamoa.study.service.StudyService;
 import com.woowacourse.moamoa.study.service.response.StudiesResponse;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -31,9 +32,10 @@ public class StudyController {
     @GetMapping("/search")
     public ResponseEntity<StudiesResponse> searchStudies(
             @RequestParam(required = false, defaultValue = "") final String title,
+            @RequestParam(required = false, name = "tag", defaultValue = "") final List<Long> tags,
             @PageableDefault(size = 5) final Pageable pageable
     ) {
-        final StudiesResponse studiesResponse = studyService.searchBy(title, pageable);
+        final StudiesResponse studiesResponse = studyService.getStudies(title, tags, pageable);
         return ResponseEntity.ok().body(studiesResponse);
     }
 }
