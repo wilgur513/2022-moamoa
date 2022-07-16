@@ -4,9 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.woowacourse.moamoa.filter.domain.CategoryId;
-import com.woowacourse.moamoa.filter.infra.FilterResponseDao;
-import com.woowacourse.moamoa.filter.service.FilterService;
-import com.woowacourse.moamoa.filter.service.response.FiltersResponse;
+import com.woowacourse.moamoa.filter.query.FiltersSearcher;
+import com.woowacourse.moamoa.filter.query.response.FiltersResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,22 +18,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
 @DataJpaTest(includeFilters = @Filter(type = FilterType.ANNOTATION, classes = Repository.class))
-class FilterControllerTest {
+class SearchingFilterControllerTest {
 
     @Autowired
-    private FilterResponseDao filterResponseDao;
+    private FiltersSearcher filtersSearcher;
 
-    private FilterController filterController;
+    private SearchingFilterController searchingFilterController;
 
     @BeforeEach
     void setUp() {
-        filterController = new FilterController(new FilterService(filterResponseDao));
+        searchingFilterController = new SearchingFilterController(filtersSearcher);
     }
 
     @DisplayName("필터 목록 전체를 조회한다.")
     @Test
     void getFilters() {
-        ResponseEntity<FiltersResponse> response = filterController.getFilters("", CategoryId.empty());
+        ResponseEntity<FiltersResponse> response = searchingFilterController.getFilters("", CategoryId.empty());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -53,7 +52,7 @@ class FilterControllerTest {
     @DisplayName("필터 이름을 대소문자 구분없이 앞뒤 공백을 제거해 필터 목록을 조회한다.")
     @Test
     void getFiltersByName() {
-        ResponseEntity<FiltersResponse> response = filterController.getFilters("   ja  \t ", CategoryId.empty());
+        ResponseEntity<FiltersResponse> response = searchingFilterController.getFilters("   ja  \t ", CategoryId.empty());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -66,7 +65,7 @@ class FilterControllerTest {
 
     @Test
     void getFiltersByCategoryId() {
-        ResponseEntity<FiltersResponse> response = filterController.getFilters("", new CategoryId(3L));
+        ResponseEntity<FiltersResponse> response = searchingFilterController.getFilters("", new CategoryId(3L));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();

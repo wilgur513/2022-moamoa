@@ -1,12 +1,10 @@
-package com.woowacourse.moamoa.study.infra.search;
+package com.woowacourse.moamoa.study.query;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.woowacourse.moamoa.study.infra.Filters;
-import com.woowacourse.moamoa.study.infra.StudySearcher;
-import com.woowacourse.moamoa.study.infra.response.StudiesResponse;
+import com.woowacourse.moamoa.study.query.response.StudiesResponse;
 import java.util.List;
 import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
@@ -24,17 +22,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Repository.class))
-public class StudySearcherTest {
+public class StudiesSearcherTest {
 
     @Autowired
-    private StudySearcher studySearcher;
+    private StudiesSearcher studiesSearcher;
 
     @DisplayName("페이징 정보를 사용해 스터디 목록 조회")
     @ParameterizedTest
     @MethodSource("providePageableAndExpect")
     public void findAllByPageable(Pageable pageable, List<Tuple> expectedTuples,
                                   boolean expectedHasNext) {
-        final StudiesResponse response = studySearcher.searchBy("", Filters.emptyFilters(), pageable);
+        final StudiesResponse response = studiesSearcher.searchBy("", SearchingFilters.emptyFilters(), pageable);
 
         assertThat(response.isHasNext()).isEqualTo(expectedHasNext);
         assertThat(response.getStudies())
@@ -62,8 +60,8 @@ public class StudySearcherTest {
     @DisplayName("키워드와 함께 페이징 정보를 사용해 스터디 목록 조회")
     @Test
     public void findByTitleContaining() {
-        final StudiesResponse response = studySearcher
-                .searchBy("java", Filters.emptyFilters(), PageRequest.of(0, 3));
+        final StudiesResponse response = studiesSearcher
+                .searchBy("java", SearchingFilters.emptyFilters(), PageRequest.of(0, 3));
 
         assertThat(response.isHasNext()).isFalse();
         assertThat(response.getStudies())
@@ -78,7 +76,7 @@ public class StudySearcherTest {
     @DisplayName("빈 키워드와 함께 페이징 정보를 사용해 스터디 목록 조회")
     @Test
     public void findByBlankTitle() {
-        final StudiesResponse response = studySearcher.searchBy("", Filters.emptyFilters(), PageRequest.of(0, 5));
+        final StudiesResponse response = studiesSearcher.searchBy("", SearchingFilters.emptyFilters(), PageRequest.of(0, 5));
 
         assertThat(response.isHasNext()).isFalse();
         assertThat(response.getStudies())
@@ -96,8 +94,8 @@ public class StudySearcherTest {
     @DisplayName("한 가지 종류의 필터로 스터디 목록을 조회")
     @ParameterizedTest
     @MethodSource("provideOneKindFiltersAndExpectResult")
-    void searchByOneKindFilter(Filters filters, List<Tuple> tuples) {
-        StudiesResponse response = studySearcher.searchBy("", filters, PageRequest.of(0, 3));
+    void searchByOneKindFilter(SearchingFilters searchingFilters, List<Tuple> tuples) {
+        StudiesResponse response = studiesSearcher.searchBy("", searchingFilters, PageRequest.of(0, 3));
 
         assertThat(response.isHasNext()).isFalse();
         assertThat(response.getStudies())
@@ -108,15 +106,15 @@ public class StudySearcherTest {
 
     private static Stream<Arguments> provideOneKindFiltersAndExpectResult() {
         return Stream.of(
-                Arguments.of(new Filters(emptyList(), emptyList(), List.of(5L)), // React
+                Arguments.of(new SearchingFilters(emptyList(), emptyList(), List.of(5L)), // React
                         List.of(tuple("React 스터디", "리액트 설명", "react thumbnail", "OPEN"))),
-                Arguments.of(new Filters(emptyList(), List.of(3L), emptyList()), // BE
+                Arguments.of(new SearchingFilters(emptyList(), List.of(3L), emptyList()), // BE
                         List.of(
                                 tuple("Java 스터디", "자바 설명", "java thumbnail", "OPEN"),
                                 tuple("HTTP 스터디", "HTTP 설명", "http thumbnail", "CLOSE")
                         )),
-                Arguments.of(new Filters(List.of(6L), emptyList(), emptyList()), List.of()), // 3기,
-                Arguments.of(new Filters(emptyList(), emptyList(), List.of(1L, 5L)), // Java, React
+                Arguments.of(new SearchingFilters(List.of(6L), emptyList(), emptyList()), List.of()), // 3기,
+                Arguments.of(new SearchingFilters(emptyList(), emptyList(), List.of(1L, 5L)), // Java, React
                         List.of(
                                 tuple("Java 스터디", "자바 설명", "java thumbnail", "OPEN"),
                                 tuple("React 스터디", "리액트 설명", "react thumbnail", "OPEN")
@@ -127,8 +125,8 @@ public class StudySearcherTest {
     @DisplayName("다른 종류의 카테고리인 경우 OR 조건으로 조회")
     @ParameterizedTest
     @MethodSource("provideFiltersAndExpectResult")
-    void searchByUnableToFoundTags(Filters filters, List<Tuple> tuples, boolean hasNext) {
-        StudiesResponse response = studySearcher.searchBy("", filters, PageRequest.of(0, 3));
+    void searchByUnableToFoundTags(SearchingFilters searchingFilters, List<Tuple> tuples, boolean hasNext) {
+        StudiesResponse response = studiesSearcher.searchBy("", searchingFilters, PageRequest.of(0, 3));
 
         assertThat(response.isHasNext()).isEqualTo(hasNext);
         assertThat(response.getStudies())
@@ -139,21 +137,21 @@ public class StudySearcherTest {
 
     private static Stream<Arguments> provideFiltersAndExpectResult() {
         return Stream.of(
-                Arguments.of(new Filters(List.of(2L), emptyList(), List.of(1L, 5L)), // 4기, Java, React
+                Arguments.of(new SearchingFilters(List.of(2L), emptyList(), List.of(1L, 5L)), // 4기, Java, React
                         List.of(
                                 tuple("Java 스터디", "자바 설명", "java thumbnail", "OPEN"),
                                 tuple("React 스터디", "리액트 설명", "react thumbnail", "OPEN")
                         ),
                         false
                 ),
-                Arguments.of(new Filters(emptyList(), List.of(3L), List.of(5L)), // BE, React
+                Arguments.of(new SearchingFilters(emptyList(), List.of(3L), List.of(5L)), // BE, React
                         List.of(),
                         false),
-                Arguments.of(new Filters(List.of(2L), List.of(3L), List.of(1L)), // 4기, BE, Java
+                Arguments.of(new SearchingFilters(List.of(2L), List.of(3L), List.of(1L)), // 4기, BE, Java
                         List.of(tuple("Java 스터디", "자바 설명", "java thumbnail", "OPEN")),
                         false
                 ),
-                Arguments.of(new Filters(List.of(2L), List.of(3L, 4L), emptyList()), // 4기, FE, BE
+                Arguments.of(new SearchingFilters(List.of(2L), List.of(3L, 4L), emptyList()), // 4기, FE, BE
                         List.of(
                                 tuple("Java 스터디", "자바 설명", "java thumbnail", "OPEN"),
                                 tuple("React 스터디", "리액트 설명", "react thumbnail", "OPEN"),
@@ -161,7 +159,7 @@ public class StudySearcherTest {
                         ),
                         true
                 ),
-                Arguments.of(new Filters(List.of(2L), List.of(3L, 4L), List.of(1L, 5L)), // 4기, FE, BE, Java, React
+                Arguments.of(new SearchingFilters(List.of(2L), List.of(3L, 4L), List.of(1L, 5L)), // 4기, FE, BE, Java, React
                         List.of(
                                 tuple("Java 스터디", "자바 설명", "java thumbnail", "OPEN"),
                                 tuple("React 스터디", "리액트 설명", "react thumbnail", "OPEN")

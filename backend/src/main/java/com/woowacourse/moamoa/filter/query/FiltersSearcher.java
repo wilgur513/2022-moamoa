@@ -1,8 +1,9 @@
-package com.woowacourse.moamoa.filter.infra;
+package com.woowacourse.moamoa.filter.query;
 
 import com.woowacourse.moamoa.filter.domain.CategoryId;
-import com.woowacourse.moamoa.filter.infra.response.CategoryResponse;
-import com.woowacourse.moamoa.filter.infra.response.FilterResponse;
+import com.woowacourse.moamoa.filter.query.response.CategoryResponse;
+import com.woowacourse.moamoa.filter.query.response.FilterResponse;
+import com.woowacourse.moamoa.filter.query.response.FiltersResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class FilterResponseDao {
+public class FiltersSearcher {
 
     public static final RowMapper<FilterResponse> ROW_MAPPER = (rs, rn) -> {
         final long filterId = rs.getLong("filter_id");
@@ -26,8 +27,10 @@ public class FilterResponseDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public List<FilterResponse> queryBy(final String name, final CategoryId categoryId) {
-        return jdbcTemplate.query(sql(categoryId), param(name, categoryId), ROW_MAPPER);
+    public FiltersResponse queryBy(final String name, final CategoryId categoryId) {
+        final List<FilterResponse> filterResponses = jdbcTemplate
+                .query(sql(categoryId), param(name, categoryId), ROW_MAPPER);
+        return new FiltersResponse(filterResponses);
     }
 
     private Map<String, Object> param(final String name, final CategoryId categoryId) {
@@ -38,16 +41,13 @@ public class FilterResponseDao {
     }
 
     private String sql(final CategoryId categoryId) {
-        if (categoryId.isEmpty()) {
-            return "SELECT f.id as filter_id, f.name as filter_name, "
-                    + "c.id as category_id, c.name as category_name "
-                    + "FROM filter as f JOIN category as c ON f.category_id = c.id "
-                    + "WHERE UPPER(f.name) LIKE UPPER(:name)";
-        }
-
         return "SELECT f.id as filter_id, f.name as filter_name, "
                 + "c.id as category_id, c.name as category_name "
                 + "FROM filter as f JOIN category as c ON f.category_id = c.id "
-                + "WHERE UPPER(f.name) LIKE UPPER(:name) and c.id = :categoryId";
+                + "WHERE UPPER(f.name) LIKE UPPER(:name) " + AND_c_id_EQ_category_id(categoryId);
+    }
+
+    private String AND_c_id_EQ_category_id(final CategoryId categoryId) {
+        return categoryId.isEmpty() ? "" : "AND c.id = :categoryId";
     }
 }

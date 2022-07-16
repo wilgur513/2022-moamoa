@@ -1,4 +1,4 @@
-package com.woowacourse.moamoa.study.infra;
+package com.woowacourse.moamoa.study.query;
 
 import com.woowacourse.moamoa.filter.domain.CategoryName;
 import java.util.HashMap;
@@ -9,11 +9,11 @@ import lombok.Getter;
 
 @EqualsAndHashCode
 @Getter
-public class Filters {
+public class SearchingFilters {
 
     private final Map<CategoryName, List<Long>> filters = new HashMap<>();
 
-    public Filters(final List<Long> generationIds, final List<Long> areaIds, final List<Long> tagIds) {
+    public SearchingFilters(final List<Long> generationIds, final List<Long> areaIds, final List<Long> tagIds) {
         filters.put(CategoryName.GENERATION, generationIds);
         filters.put(CategoryName.AREA, areaIds);
         filters.put(CategoryName.TAG, tagIds);
@@ -27,7 +27,7 @@ public class Filters {
         return filters.get(name);
     }
 
-    public static Filters emptyFilters() {
-        return new Filters(List.of(), List.of(), List.of());
+    public static SearchingFilters emptyFilters() {
+        return new SearchingFilters(List.of(), List.of(), List.of());
     }
 }

@@ -1,11 +1,10 @@
-package com.woowacourse.moamoa.filter.infra;
+package com.woowacourse.moamoa.filter.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.woowacourse.moamoa.filter.domain.CategoryId;
-import com.woowacourse.moamoa.filter.infra.response.FilterResponse;
-import java.util.List;
+import com.woowacourse.moamoa.filter.query.response.FiltersResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +14,17 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Repository;
 
 @DataJpaTest(includeFilters = @Filter(type = FilterType.ANNOTATION, classes = Repository.class))
-class FilterResponseDaoTest {
+class FiltersSearcherTest {
 
     @Autowired
-    private FilterResponseDao filterResponseDao;
+    private FiltersSearcher filtersSearcher;
 
     @DisplayName("필터 없이 조회시 태그 목록 전체를 조회한다.")
     @Test
     void findAllByBlankTagName() {
-        List<FilterResponse> filterResponses = filterResponseDao.queryBy("", CategoryId.empty());
+        FiltersResponse filterResponses = filtersSearcher.queryBy("", CategoryId.empty());
 
-        assertThat(filterResponses)
+        assertThat(filterResponses.getFilters())
                 .hasSize(6)
                 .filteredOn(filter -> filter.getId() != null)
                 .extracting("name", "category.id", "category.name")
@@ -42,9 +41,9 @@ class FilterResponseDaoTest {
     @DisplayName("대소문자 구분없이 필터 이름으로 조회한다.")
     @Test
     void findAllByNameContainingIgnoreCase() {
-        List<FilterResponse> filterResponses = filterResponseDao.queryBy("ja", CategoryId.empty());
+        FiltersResponse filterResponses = filtersSearcher.queryBy("ja", CategoryId.empty());
 
-        assertThat(filterResponses)
+        assertThat(filterResponses.getFilters())
                 .hasSize(1)
                 .filteredOn(filter -> filter.getId() != null)
                 .extracting("name", "category.id", "category.name")
@@ -56,9 +55,9 @@ class FilterResponseDaoTest {
     @DisplayName("카테고리로 필터를 조회한다.")
     @Test
     void findAllByCategory() {
-        List<FilterResponse> filterResponses = filterResponseDao.queryBy("", new CategoryId(3L));
+        FiltersResponse filterResponses = filtersSearcher.queryBy("", new CategoryId(3L));
 
-        assertThat(filterResponses)
+        assertThat(filterResponses.getFilters())
                 .hasSize(2)
                 .filteredOn(filter -> filter.getId() != null)
                 .extracting("name", "category.id", "category.name")
@@ -71,9 +70,9 @@ class FilterResponseDaoTest {
     @DisplayName("카테고리와 이름으로 필터를 조회한다.")
     @Test
     void findAllByCategoryAndName() {
-        List<FilterResponse> filterResponses = filterResponseDao.queryBy("ja", new CategoryId(3L));
+        FiltersResponse filterResponses = filtersSearcher.queryBy("ja", new CategoryId(3L));
 
-        assertThat(filterResponses)
+        assertThat(filterResponses.getFilters())
                 .hasSize(1)
                 .filteredOn(filter -> filter.getId() != null)
                 .extracting("name", "category.id", "category.name")

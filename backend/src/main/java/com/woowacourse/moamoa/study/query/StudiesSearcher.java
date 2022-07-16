@@ -1,8 +1,8 @@
-package com.woowacourse.moamoa.study.infra;
+package com.woowacourse.moamoa.study.query;
 
 import com.woowacourse.moamoa.filter.domain.CategoryName;
-import com.woowacourse.moamoa.study.infra.response.StudiesResponse;
-import com.woowacourse.moamoa.study.infra.response.StudyResponse;
+import com.woowacourse.moamoa.study.query.response.StudiesResponse;
+import com.woowacourse.moamoa.study.query.response.StudyResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class StudySearcher {
+public class StudiesSearcher {
 
     private static final RowMapper<StudyResponse> ROW_MAPPER = (rs, rn) -> {
         final Long id = rs.getLong("id");
@@ -27,34 +27,36 @@ public class StudySearcher {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public StudiesResponse searchBy(final String title, final Filters filters, final Pageable pageable) {
+    public StudiesResponse searchBy(final String title, final SearchingFilters searchingFilters,
+                                    final Pageable pageable) {
         final List<StudyResponse> studies = namedParameterJdbcTemplate
-                .query(sql(filters), params(title, filters, pageable), ROW_MAPPER);
+                .query(sql(searchingFilters), params(title, searchingFilters, pageable), ROW_MAPPER);
         return new StudiesResponse(getCurrentPageStudies(studies, pageable), hasNext(studies, pageable));
     }
 
-    private String sql(final Filters filters) {
+    private String sql(final SearchingFilters searchingFilters) {
         return "SELECT s.id, s.title, s.excerpt, s.thumbnail, s.status "
                 + "FROM study s "
-                + joinTableClause(filters)
+                + joinTableClause(searchingFilters)
                 + "WHERE UPPER(s.title) LIKE UPPER(:title) ESCAPE '\' "
-                + filtersInQueryClause(filters)
+                + filtersInQueryClause(searchingFilters)
                 + "GROUP BY s.id LIMIT :limit OFFSET :offset";
     }
 
-    private String joinTableClause(final Filters filters) {
+    private String joinTableClause(final SearchingFilters searchingFilters) {
         String sql = "";
-        if (filters.hasBy(CategoryName.GENERATION)) {
+        if (searchingFilters.hasBy(CategoryName.GENERATION)) {
             sql += "JOIN study_filter sf1 ON s.id = sf1.study_id "
                     + "JOIN filter gen_filter ON sf1.filter_id = gen_filter.id "
-                    + "JOIN category c1 ON gen_filter.category_id = c1.id AND c1.name = '" + CategoryName.GENERATION + "' ";
+                    + "JOIN category c1 ON gen_filter.category_id = c1.id AND c1.name = '" + CategoryName.GENERATION
+                    + "' ";
         }
-        if (filters.hasBy(CategoryName.AREA)) {
+        if (searchingFilters.hasBy(CategoryName.AREA)) {
             sql += "JOIN study_filter sf2 ON s.id = sf2.study_id "
                     + "JOIN filter area_filter ON sf2.filter_id = area_filter.id "
                     + "JOIN category c2 ON area_filter.category_id = c2.id AND c2.name = '" + CategoryName.AREA + "' ";
         }
-        if (filters.hasBy(CategoryName.TAG)) {
+        if (searchingFilters.hasBy(CategoryName.TAG)) {
             sql += "JOIN study_filter sf3 ON s.id = sf3.study_id "
                     + "JOIN filter tag_filter ON sf3.filter_id = tag_filter.id "
                     + "JOIN category c3 ON tag_filter.category_id = c3.id AND c3.name = '" + CategoryName.TAG + "' ";
@@ -62,28 +64,29 @@ public class StudySearcher {
         return sql;
     }
 
-    private String filtersInQueryClause(final Filters filters) {
+    private String filtersInQueryClause(final SearchingFilters searchingFilters) {
         String sql = "";
-        if (filters.hasBy(CategoryName.GENERATION)) {
+        if (searchingFilters.hasBy(CategoryName.GENERATION)) {
             sql += "AND gen_filter.id IN (:generationIds) ";
         }
-        if (filters.hasBy(CategoryName.AREA)) {
+        if (searchingFilters.hasBy(CategoryName.AREA)) {
             sql += "AND area_filter.id IN (:areaIds) ";
         }
-        if (filters.hasBy(CategoryName.TAG)) {
+        if (searchingFilters.hasBy(CategoryName.TAG)) {
             sql += "AND tag_filter.id IN (:tagIds) ";
         }
         return sql;
     }
 
-    private Map<String, Object> params(final String title, final Filters filters, final Pageable pageable) {
+    private Map<String, Object> params(final String title, final SearchingFilters searchingFilters,
+                                       final Pageable pageable) {
         Map<String, Object> param = new HashMap<>();
         param.put("title", "%" + title + "%");
         param.put("limit", pageable.getPageSize() + 1);
         param.put("offset", pageable.getOffset());
-        param.put("generationIds", filters.getFilterIdsBy(CategoryName.GENERATION));
-        param.put("areaIds", filters.getFilterIdsBy(CategoryName.AREA));
-        param.put("tagIds", filters.getFilterIdsBy(CategoryName.TAG));
+        param.put("generationIds", searchingFilters.getFilterIdsBy(CategoryName.GENERATION));
+        param.put("areaIds", searchingFilters.getFilterIdsBy(CategoryName.AREA));
+        param.put("tagIds", searchingFilters.getFilterIdsBy(CategoryName.TAG));
         return param;
     }
 

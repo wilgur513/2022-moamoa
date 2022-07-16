@@ -4,15 +4,12 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.woowacourse.moamoa.study.infra.Filters;
-import com.woowacourse.moamoa.study.infra.StudySearcher;
-import com.woowacourse.moamoa.study.infra.response.StudiesResponse;
+import com.woowacourse.moamoa.study.query.StudiesSearcher;
+import com.woowacourse.moamoa.study.query.response.StudiesResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -28,11 +25,11 @@ public class SearchingStudyControllerTest {
     private SearchingStudyController searchingStudyController;
 
     @Autowired
-    private StudySearcher studySearcher;
+    private StudiesSearcher studiesSearcher;
 
     @BeforeEach
     void setUp() {
-        searchingStudyController = new SearchingStudyController(studySearcher);
+        searchingStudyController = new SearchingStudyController(studiesSearcher);
     }
 
     @DisplayName("페이징 정보로 스터디 목록 조회")

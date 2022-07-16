@@ -2,11 +2,15 @@ package com.woowacourse.moamoa.study.domain;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-import com.woowacourse.moamoa.study.infra.Filters;
-import javax.persistence.Embedded;
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 
 @Entity
 public class Study {
@@ -18,6 +22,13 @@ public class Study {
     private String excerpt;
     private String thumbnail;
     private String status;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "study_filter",
+            joinColumns = @JoinColumn(name = "study_id")
+    )
+    private final Set<AttachedTag> attachedTags = new HashSet<>();
 
     protected Study() {
     }
@@ -50,5 +61,17 @@ public class Study {
 
     public String getStatus() {
         return status;
+    }
+
+    public void attachTag(final AttachedTag attachedTag) {
+        attachedTags.add(attachedTag);
+    }
+
+    public void detachTag(final AttachedTag attachedTag) {
+        attachedTags.remove(attachedTag);
+    }
+
+    public Set<AttachedTag> getAttachedTags() {
+        return attachedTags;
     }
 }

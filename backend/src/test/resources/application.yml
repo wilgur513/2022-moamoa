@@ -13,7 +13,6 @@ logging:
         jdbc:
           core: trace
       hibernate:
-        SQL: debug
         type:
           descriptor:
             sql: trace

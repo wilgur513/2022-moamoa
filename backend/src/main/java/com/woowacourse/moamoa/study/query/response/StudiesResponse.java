@@ -1,4 +1,4 @@
-package com.woowacourse.moamoa.study.infra.response;
+package com.woowacourse.moamoa.study.query.response;
 
 import java.util.List;
 

@@ -1,6 +1,5 @@
-package com.woowacourse.moamoa.filter.service.response;
+package com.woowacourse.moamoa.filter.query.response;
 
-import com.woowacourse.moamoa.filter.infra.response.FilterResponse;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

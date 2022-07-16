@@ -1,8 +1,8 @@
 package com.woowacourse.moamoa.study.controller;
 
-import com.woowacourse.moamoa.study.infra.response.StudiesResponse;
-import com.woowacourse.moamoa.study.infra.Filters;
-import com.woowacourse.moamoa.study.infra.StudySearcher;
+import com.woowacourse.moamoa.study.query.SearchingFilters;
+import com.woowacourse.moamoa.study.query.StudiesSearcher;
+import com.woowacourse.moamoa.study.query.response.StudiesResponse;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,17 +18,18 @@ public class SearchingStudyController {
 
     private static final String BLANK_TITLE = "";
 
-    private final StudySearcher studySearcher;
+    private final StudiesSearcher studiesSearcher;
 
-    public SearchingStudyController(final StudySearcher studySearcher) {
-        this.studySearcher = studySearcher;
+    public SearchingStudyController(final StudiesSearcher studiesSearcher) {
+        this.studiesSearcher = studiesSearcher;
     }
 
     @GetMapping
     public ResponseEntity<StudiesResponse> searchStudies(
             @PageableDefault(size = 5) final Pageable pageable
     ) {
-        final StudiesResponse studiesResponse = studySearcher.searchBy(BLANK_TITLE, Filters.emptyFilters(), pageable);
+        final StudiesResponse studiesResponse = studiesSearcher
+                .searchBy(BLANK_TITLE, SearchingFilters.emptyFilters(), pageable);
         return ResponseEntity.ok().body(studiesResponse);
     }
 
@@ -40,8 +41,8 @@ public class SearchingStudyController {
             @RequestParam(required = false, name = "tag", defaultValue = "") final List<Long> tags,
             @PageableDefault(size = 5) final Pageable pageable
     ) {
-        final Filters filters = new Filters(generations, areas, tags);
-        final StudiesResponse studiesResponse = studySearcher.searchBy(title.trim(), filters, pageable);
+        final SearchingFilters searchingFilters = new SearchingFilters(generations, areas, tags);
+        final StudiesResponse studiesResponse = studiesSearcher.searchBy(title.trim(), searchingFilters, pageable);
         return ResponseEntity.ok().body(studiesResponse);
     }
 }
