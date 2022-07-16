@@ -21,11 +21,11 @@ public class FilterAcceptanceTest extends AcceptanceTest {
                 .get("/api/filters")
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value())
-                .body("filters", hasSize(5))
+                .body("filters", hasSize(6))
                 .body("filters.id", not(empty()))
-                .body("filters.name", contains("Java", "4기", "BE", "FE", "React"))
-                .body("filters.category.id", contains(3, 1, 2, 2, 3))
-                .body("filters.category.name", contains("TAG", "GENERATION", "AREA", "AREA", "TAG"));
+                .body("filters.name", contains("Java", "4기", "BE", "FE", "React", "3기"))
+                .body("filters.category.id", contains(3, 1, 2, 2, 3, 1))
+                .body("filters.category.name", contains("TAG", "GENERATION", "AREA", "AREA", "TAG", "GENERATION"));
     }
 
     @DisplayName("공백의 이름일 경우 전체 필터 목록을 조회한다.")
@@ -37,11 +37,11 @@ public class FilterAcceptanceTest extends AcceptanceTest {
                 .get("/api/filters")
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value())
-                .body("filters", hasSize(5))
+                .body("filters", hasSize(6))
                 .body("filters.id", not(empty()))
-                .body("filters.name", contains("Java", "4기", "BE", "FE", "React"))
-                .body("filters.category.id", contains(3, 1, 2, 2, 3))
-                .body("filters.category.name", contains("TAG", "GENERATION", "AREA", "AREA", "TAG"));
+                .body("filters.name", contains("Java", "4기", "BE", "FE", "React", "3기"))
+                .body("filters.category.id", contains(3, 1, 2, 2, 3, 1))
+                .body("filters.category.name", contains("TAG", "GENERATION", "AREA", "AREA", "TAG", "GENERATION"));
     }
 
     @DisplayName("이름을 포함한 필터 목록을 대소문자 구분없이 조회한다.")

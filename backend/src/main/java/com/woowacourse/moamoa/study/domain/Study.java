@@ -2,6 +2,8 @@ package com.woowacourse.moamoa.study.domain;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
+import com.woowacourse.moamoa.study.infra.Filters;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;

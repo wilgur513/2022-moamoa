@@ -45,7 +45,8 @@ class FilterControllerTest {
                         tuple(2L, "4기", 1L, "GENERATION"),
                         tuple(3L, "BE", 2L, "AREA"),
                         tuple(4L, "FE", 2L, "AREA"),
-                        tuple(5L, "React", 3L, "TAG")
+                        tuple(5L, "React", 3L, "TAG"),
+                        tuple(6L, "3기", 1L, "GENERATION")
                 );
     }
 

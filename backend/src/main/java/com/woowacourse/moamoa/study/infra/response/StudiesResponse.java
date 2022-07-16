@@ -1,18 +1,15 @@
-package com.woowacourse.moamoa.study.service.response;
+package com.woowacourse.moamoa.study.infra.response;
 
 import java.util.List;
 
 public class StudiesResponse {
 
-    private List<StudyResponse> studies;
-    private boolean hasNext;
+    private final List<StudyResponse> studies;
+    private final boolean hasNext;
 
     public StudiesResponse(final List<StudyResponse> studies, final boolean hasNext) {
         this.studies = studies;
         this.hasNext = hasNext;
-    }
-
-    public StudiesResponse() {
     }
 
     public List<StudyResponse> getStudies() {

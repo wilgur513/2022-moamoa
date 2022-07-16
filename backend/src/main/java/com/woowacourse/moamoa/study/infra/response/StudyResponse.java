@@ -1,24 +1,15 @@
-package com.woowacourse.moamoa.study.service.response;
+package com.woowacourse.moamoa.study.infra.response;
 
-import com.woowacourse.moamoa.study.domain.Study;
 import lombok.ToString;
 
 @ToString
 public class StudyResponse {
 
-    private Long id;
-    private String title;
-    private String excerpt;
-    private String thumbnail;
-    private String status;
-
-    public StudyResponse() {
-    }
-
-    public StudyResponse(final Study study) {
-        this(study.getId(), study.getTitle(), study.getExcerpt(), study.getThumbnail(),
-                study.getStatus());
-    }
+    private final Long id;
+    private final String title;
+    private final String excerpt;
+    private final String thumbnail;
+    private final String status;
 
     public StudyResponse(
             final Long id, final String title, final String excerpt,

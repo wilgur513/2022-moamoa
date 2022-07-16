@@ -4,13 +4,15 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-import com.woowacourse.moamoa.study.service.StudySearcher;
-import com.woowacourse.moamoa.study.service.StudyService;
-import com.woowacourse.moamoa.study.service.response.StudiesResponse;
+import com.woowacourse.moamoa.study.infra.Filters;
+import com.woowacourse.moamoa.study.infra.StudySearcher;
+import com.woowacourse.moamoa.study.infra.response.StudiesResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -21,22 +23,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Repository.class))
-public class StudyControllerTest {
+public class SearchingStudyControllerTest {
 
-    private StudyController studyController;
+    private SearchingStudyController searchingStudyController;
 
     @Autowired
     private StudySearcher studySearcher;
 
     @BeforeEach
     void setUp() {
-        studyController = new StudyController(new StudyService(studySearcher));
+        searchingStudyController = new SearchingStudyController(studySearcher);
     }
 
     @DisplayName("페이징 정보로 스터디 목록 조회")
     @Test
     public void getStudies() {
-        ResponseEntity<StudiesResponse> response = studyController.getStudies(PageRequest.of(0, 3));
+        ResponseEntity<StudiesResponse> response = searchingStudyController.searchStudies(PageRequest.of(0, 3));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -54,7 +56,8 @@ public class StudyControllerTest {
     @DisplayName("빈 문자열로 검색시 전체 스터디 목록에서 조회")
     @Test
     void searchByBlankKeyword() {
-        ResponseEntity<StudiesResponse> response = studyController.searchStudies("", emptyList(),
+        ResponseEntity<StudiesResponse> response = searchingStudyController
+                .searchStudies("", emptyList(), emptyList(), emptyList(),
                 PageRequest.of(0, 3)
         );
 
@@ -74,7 +77,8 @@ public class StudyControllerTest {
     @DisplayName("문자열로 검색시 해당되는 스터디 목록에서 조회")
     @Test
     void searchByKeyword() {
-        ResponseEntity<StudiesResponse> response = studyController.searchStudies("Java 스터디", emptyList(),
+        ResponseEntity<StudiesResponse> response = searchingStudyController
+                .searchStudies("Java 스터디", emptyList(), emptyList(), emptyList(),
                 PageRequest.of(0, 3)
         );
 
@@ -90,8 +94,8 @@ public class StudyControllerTest {
     @DisplayName("앞뒤 공백을 제거한 문자열로 스터디 목록 조회")
     @Test
     void searchWithTrimKeyword() {
-        ResponseEntity<StudiesResponse> response = studyController
-                .searchStudies("   Java 스터디   ", emptyList(), PageRequest.of(0, 3));
+        ResponseEntity<StudiesResponse> response = searchingStudyController
+                .searchStudies("   Java 스터디   ", emptyList(), emptyList(), emptyList(), PageRequest.of(0, 3));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -102,33 +106,39 @@ public class StudyControllerTest {
                 .contains(tuple(1L, "Java 스터디", "자바 설명", "java thumbnail", "OPEN"));
     }
 
-    @DisplayName("tag에 필터링 되는 스터디 목록이 없는 경우 빈 리스트를 반환한다.")
+    @DisplayName("다른 종류의 필터들은 AND 조건으로 스터디 목록을 조회")
     @Test
-    void searchNotFoundStudiesByFilters() {
-        List<Long> filterIds = List.of(3L, 4L); // BE, FE
-        ResponseEntity<StudiesResponse> response = studyController
-                .searchStudies("", filterIds, PageRequest.of(0, 3));
+    void searchByDifferentKindFilters() {
+        List<Long> tags = List.of(5L); // React
+        List<Long> areas = List.of(3L); // BE
+
+        ResponseEntity<StudiesResponse> response = searchingStudyController
+                .searchStudies("", emptyList(), areas, tags, PageRequest.of(0, 3));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().isHasNext()).isFalse();
-        assertThat(response.getBody().getStudies())
-                .hasSize(0);
+        assertThat(response.getBody().getStudies()).hasSize(0);
     }
 
-    @DisplayName("tag에 필터링 되는 스터디 목록을 조회한다.")
+    @DisplayName("같은 종류의 필터들은 OR 조건으로 스터디 목록을 조회")
     @Test
-    void searchStudiesByFilters() {
-        List<Long> filterIds = List.of(1L, 2L); // Java, 4기
-        ResponseEntity<StudiesResponse> response = studyController
-                .searchStudies("", filterIds, PageRequest.of(0, 3));
+    void searchBySameAndDifferentKindFilters() {
+        List<Long> generationIds = List.of(2L); // 4기
+        List<Long> areaIds = List.of(3L, 4L); // BE, FE
+        List<Long> tagIds = List.of(1L, 5L); // Java, React
+        ResponseEntity<StudiesResponse> response = searchingStudyController
+                .searchStudies("", generationIds, areaIds, tagIds, PageRequest.of(0, 3));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().isHasNext()).isFalse();
         assertThat(response.getBody().getStudies())
-                .hasSize(1)
+                .hasSize(2)
                 .extracting("id", "title", "excerpt", "thumbnail", "status")
-                .contains(tuple(1L, "Java 스터디", "자바 설명", "java thumbnail", "OPEN"));
+                .contains(
+                        tuple(1L, "Java 스터디", "자바 설명", "java thumbnail", "OPEN"),
+                        tuple(2L, "React 스터디", "리액트 설명", "react thumbnail", "OPEN")
+                );
     }
 }

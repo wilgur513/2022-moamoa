@@ -26,7 +26,7 @@ class FilterResponseDaoTest {
         List<FilterResponse> filterResponses = filterResponseDao.queryBy("", CategoryId.empty());
 
         assertThat(filterResponses)
-                .hasSize(5)
+                .hasSize(6)
                 .filteredOn(filter -> filter.getId() != null)
                 .extracting("name", "category.id", "category.name")
                 .containsExactly(
@@ -34,7 +34,8 @@ class FilterResponseDaoTest {
                         tuple("4기", 1L, "GENERATION"),
                         tuple("BE", 2L, "AREA"),
                         tuple("FE", 2L, "AREA"),
-                        tuple("React", 3L, "TAG")
+                        tuple("React", 3L, "TAG"),
+                        tuple("3기", 1L, "GENERATION")
                 );
     }
 
